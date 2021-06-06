@@ -1,0 +1,11 @@
+# data folder
+data_folder: data
+
+# data files
+
+# fonts
+fonts_h: font.h
+fonts_training: fonts_training.json
+
+# plotting
+plotting: True
