@@ -141,6 +141,101 @@ class NetworkNeuron:
         self.last_activation = activation
         return activation
 
+class MultilayerPerceptron:
+
+    def __init__(self, hidden_layers, X_shape, Y_shape, learning_level, activation_func, dx_activation_func):
+        self.hidden_layers = hidden_layers
+        self.X_shape = X_shape
+        self.Y_shape = Y_shape
+        self.learning_level = learning_level
+        self.activation_func = activation_func
+        self.dx_activation_func = dx_activation_func
+        self.initialize()
+        self.min_weights_and_bias = self.neural_network.get_weights_and_bias()
+        self.min_error = math.inf
+
+    def initialize(self):
+        self.neural_network = NeuralNetwork(self.hidden_layers, self.X_shape, self.Y_shape, self.activation_func, self.dx_activation_func)
+
+    def train(self, X, Y, epsilon=0, epochs=100, max_it_same_bias=1000):
+        i = 0
+        n = 0
+        error = self.min_error
+
+        #creat e random= index array 
+        orders = [a for a in range(0, X.shape[0])]
+        
+        epoch_n = 0
+
+        if plotting:
+            plotter_q = mp.Queue()
+            plotter_q.cancel_join_thread()
+
+            plotter = mp.Process(target=plot_avg_error, args=((plotter_q),))
+            plotter.daemon = True
+            plotter.start()
+
+        while epoch_n < epochs and error > epsilon:
+
+            print(f'Epoch percentage: {((epoch_n/epochs)*100):.2f}%')
+
+            random.shuffle(orders)
+            
+            i = 0
+            n = 0
+            
+            while i < len(orders) and error > epsilon:
+            
+                #check if perceptron needs resetting
+                # if n > max_it_same_bias * X.shape[0]:
+                #     self.initialize()
+                #     n = 0
+
+                #choose random input            
+                rand_idx = np.random.randint(0, X.shape[0])
+                rand_X = X[rand_idx, :]
+                rand_Y = Y[rand_idx]
+
+                #print("holaaa1")
+                #evaluate chosen input
+                # print("--------- Entry ---------")
+                # print(rand_X)
+                activation = self.neural_network.evaluate(rand_X)
+                # print("--------- Output ---------")
+                # print(activation)
+                self.neural_network.apply_correction(self.learning_level, rand_Y-activation, rand_X)
+                # print("holaaa2")
+                #calculate training error
+                error = calculate_abs_error(self.neural_network, X, Y)
+
+                if plotting:
+                    mean_error = calculate_abs_error(self.neural_network, X, Y)
+                    plotter_q.put({
+                        'mean_error': mean_error
+                    })
+
+                #print(f"Current error: {error}")
+                
+                if error < self.min_error:
+                    self.min_error = error
+                    self.min_weights_and_bias = self.neural_network.get_weights_and_bias()
+                    #print('updated min_error', self.min_error)
+
+                i += 1
+                n += 1
+
+            epoch_n += 1
+
+        if plotting:
+            plotter_q.put("STOP")
+            print("Press 'q' to finish plot")
+            keyboard.wait("q")
+
+        return epoch_n >= epochs
+
+    def get_best_model(self):
+        return NeuralNetwork(self.min_weights_and_bias, self.hidden_layers, self.X_shape, self.Y_shape, self.activation_func, self.dx_activation_func)
+
 
 class NeuralNetwork:
 
@@ -170,9 +265,7 @@ class NeuralNetwork:
         self.network = self.create_network_with_weights_and_bias(weights_and_bias)
 
     def create_network_with_weights_and_bias(self, weights_and_bias):
-
         net = []
-        
         for i in range(0, len(self.hidden_layers)):
             net.append([])
             for j in range(0, self.hidden_layers[i]):
@@ -185,17 +278,16 @@ class NeuralNetwork:
                 net[i].append(new_neuron)
 
         last_layer = []
-
         for k in range(0, self.Y_shape):
-            weights_len = self.hidden_layers[-1] if len(self.hidden_layers) > 0 else self.X_shape
+            weights_len = self.hidden_layers[-1]
             initial_weights = weights_and_bias[-1][k]['weights']
             initial_bias = weights_and_bias[-1][k]['bias']
             new_neuron = NetworkNeuron(initial_weights, initial_bias, self.activation_func)
             last_layer.append(new_neuron)
 
         net.append(last_layer)
-
         return net
+
 
     def create_network(self):
 
@@ -237,8 +329,8 @@ class NeuralNetwork:
             for j in range(0, len(self.network[i])):
                 neuron = self.network[i][j]
                 if i == len(self.network) - 1:
-                    delta = correction * self.dx_activation_func(neuron.last_excitation)
-                    delta = delta[j]
+                    # delta = correction[j] * self.dx_activation_func(neuron.last_excitation)
+                    delta = correction[j]
                 else:
                     result = 0
                     for k in range(0, len(self.network[i+1])):
@@ -248,16 +340,16 @@ class NeuralNetwork:
                 
                 self.network[i][j].apply_correction(learning_level, entries, delta)
 
-        last_correction_list = []
-        for j in range(0, len(entry)):
-            last_correction = 0
-            for k in range(0, len(self.network[0])):
-                parent_neuron = self.network[0][k]
-                last_correction += parent_neuron.weights[j] * parent_neuron.last_delta
+        # last_correction_list = []
+        # for j in range(0, len(entry)):
+        #     last_correction = 0
+        #     for k in range(0, len(self.network[0])):
+        #         parent_neuron = self.network[0][k]
+        #         last_correction += parent_neuron.weights[j] * parent_neuron.last_delta
 
-            last_correction_list.append(last_correction)
+        #     last_correction_list.append(last_correction)
 
-        return np.array(last_correction_list)
+        # return np.array(last_correction_list)
         
     def evaluate(self, entry):
         entries = entry
@@ -266,7 +358,11 @@ class NeuralNetwork:
                 entries = np.array([n.last_activation for n in self.network[i-1]])
             for j in range(0, len(self.network[i])):
                 neuron = self.network[i][j]
-                neuron.evaluate(entries)
+                last = neuron.evaluate(entries)
+
+                if i == len(self.network) - 1:
+                    last = 1 if last >= 0 else -1
+                    neuron.last_activation = last
 
         result = np.array([n.last_activation for n in self.network[-1]])
 

@@ -56,8 +56,8 @@ def calculate_abs_error(models, X, y):
     else:
         model = models
         for i in range(0, X.shape[0]):
-            #print(f'expected: {y[i]}, output: {perceptron.evaluate(X[i, :])}')
-            err += abs(model.evaluate(X[i]) - y[i])
+            #print(f'expected: {y[i]}, output: {model.evaluate(X[i, :])}')
+            err += sum(abs( model.evaluate(X[i]) - y[i] ))
 
     return err
 

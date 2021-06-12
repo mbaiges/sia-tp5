@@ -1,13 +1,17 @@
 import signal
 import sys
 
-from exercises import Ej1
+from exercises import Ej1, Ej1v2
 
 exercises = {
     'ej1': [
         {
             'name': 'Autoencoder',
             'exercise': Ej1
+        },
+        {
+            'name': 'Autoencoder v2',
+            'exercise': Ej1v2
         },
     ]
 }

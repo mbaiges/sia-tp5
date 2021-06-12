@@ -17,11 +17,11 @@ def dx_sign_activation(excitement):
 # Tanh
         
 def tanh_activation(excitement):
-    beta = 2	
+    beta = 1	
     return np.tanh(beta*excitement)
     
 def dx_tanh_activation(excitement):
-    beta = 2
+    beta = 1
     return beta/np.cosh(beta*excitement)**2
     # return 1 - (tanh_activation(excitement)**2) 
 
