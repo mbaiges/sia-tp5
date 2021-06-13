@@ -1,8 +1,6 @@
 import numpy as np
 import math
 
-from utils import calculate_mean_error
-
 # class Neuron:
 
 #     def __init__(self, fn, df):
@@ -41,11 +39,11 @@ class Layer:
             fn = lambda x: np.where(x < 0, 0.0, x)
             df = lambda x: np.where(x < 0, 0.0, 1.0)
         elif activation == 'sigmoid':
-            fn = lambda x: 1 / (1 + np.exp(-x))
+            fn = lambda x: 1 / (1 + np.exp(-np.clip(x,-500,500)))
             df = lambda x: x * (1 - x)
         elif activation == 'tanh':
-            fn = lambda x: (np.exp(x) - np.exp(-1)) / (np.exp(x) + np.exp(-x))
-            df = lambda x: 1 - x**2
+            fn = lambda x: np.tanh(2*x)
+            df = lambda x: 2/np.cosh(2*x)**2
         elif activation == 'linear' or activation is None:
             fn = lambda x: x
             df = lambda x: 1.0
@@ -54,14 +52,22 @@ class Layer:
         return fn, df
 
     def init_weights(self, weights_n=0):
-        self.W = np.random.rand(weights_n, self.neuron_units) # weights_n+bias
+        # self.W = np.random.rand(weights_n, self.neuron_units) # weights_n
+        # self.B = np.random.rand(self.neuron_units) # biases
+        
         # self.neurons = []
         # for i in range(len(neuron_units)):
         #     n = Neuron(fn, df)
         #     n.init_random_weights(neuron_units)
         #     self.neurons.append(n)
 
-    def forward(self, X):     
+        # xavier
+
+        self.W = np.random.normal(loc=0.0, size=(weights_n, self.neuron_units), scale=np.sqrt(2/(weights_n + self.neuron_units)))
+        self.B = np.random.normal(loc=0.0, size=self.neuron_units, scale=np.sqrt(2/(weights_n + self.neuron_units)))
+
+
+    def _forward(self, X):     
         # 1x4  4x3  = 1x3      N1   N2  N3
         # (x1, x2, x3 x4)  x  (p11 p21 p31)  = (a b c)
         #                     (p12 p22 p13)
@@ -70,7 +76,7 @@ class Layer:
         # print(X)
         # print(self.W)
         H = X @ self.W
-        self.H = H
+        self.H = H + self.B
         A = self.fn(self.H)
         self.A = A
         return A
@@ -82,11 +88,37 @@ class Layer:
         diff = np.array([diff])
         prev_activation = np.array([prev_activation])
 
+        # print("Diff:---------------------------------------")
+        # print(diff)
+        # print("Prev Act:---------------------------------------")
+        # print(prev_activation)
+        
         aux = diff.T @ prev_activation
+        
         delta_weights = learning_rate * aux.T
         self.W = self.W + delta_weights
 
+        # print("Delta Weights---------------------------------:")
+        # print(delta_weights.shape)
+
+        # print("DIFF------------------------------------------:")
+        # print(diff)
+        # print("self.B------------------------------------------:")
+        # print(self.B)
+        
+        # aux2 = diff.T @ np.identity(prev_activation.shape)
+
+        delta_biases = learning_rate * diff[0]
+        self.B = self.B + delta_biases
+
+        # print(self.W)
+        # print(delta.T)
         new_diff = self.W @ delta.T
+        # print(new_diff)
+        # if math.isnan(new_diff):
+        #     print("error")
+        #     exit(1)
+    
         return new_diff.T
 
 class MultilayerPerceptron:
@@ -102,7 +134,7 @@ class MultilayerPerceptron:
     def _forward(self, X):
         last = X
         for layer in self.layers:
-            last = layer.forward(last)
+            last = layer._forward(last)
         return last
 
     def _backpropagate(self, X, Y_pred, Y, learning_rate):
@@ -128,21 +160,22 @@ class MultilayerPerceptron:
         #                                           = (d1.v12 d2.v12 d3.v12)
         #                                           = (d1.v13 d2.v13 d3.v13)
         #                                           = (d1.v14 d2.v14 d3.v14)
+
+
+        
                 
+    # def _transform_X(self, X):
+    #     to_append = np.ones((1, X.shape[0]))
+    #     new_X = X.T
+    #     new_X = np.append(to_append, new_X, axis=0)
+    #     return new_X.T
+
     def predict(self, X):
         return self._forward(X)
 
     def fit(self, X, Y, learning_rate=0.001, epochs=100):
 
-        print
-        to_append = np.ones((X.shape[0], 1))
-        print(to_append)
-        new_X = X.T
-        new_X = np.append(to_append, new_X, axis=0)
-        X = new_X.T
-
-        print(to_append)
-
+        # X = self._transform_X(X)
         examples_n = X.shape[0]
         err = math.inf
 
@@ -153,36 +186,25 @@ class MultilayerPerceptron:
                 Y_example = Y[i]
 
                 Y_predicted = self._forward(X_example)
+                # print(Y_predicted)
                 self._backpropagate(X_example, Y_predicted, Y_example, learning_rate)
 
-                err = calculate_mean_error(self, X, Y)
-                print(f'Error: {err:.2f}')
+                # err = self.calculate_mean_error(X, Y)
+                # print(f'Error: {err:.2f}')
 
         # print(self._forward(X[0]))
-        
-def calculate_abs_error(mlp, X, Y):
-    examples_n = X.shape[0]
-    err = 0
-    for i in range(0, examples_n):
-        err += sum( abs( mlp.predict(X[i]) - Y[i] ) )
+        err = self.calculate_mean_error(X, Y)
+        print(f'Error: {err:.2f}')
+    
+    def calculate_abs_error(self, X, Y):
+        examples_n = X.shape[0]
+        err = 0
+        for i in range(0, examples_n):
+            err += sum( abs( self._forward(X[i]) - Y[i] ) )
 
-    return err
+        return err
 
-def calculate_mean_error(mlp, X, Y):
-    err = calculate_abs_error(mlp, X, Y)
-    err /= X.shape[0]
-    return err
-
-if __name__ == "__main__": 
-
-    X = np.array([[0, 1, 2, 3]])
-    Y = np.array([[0, 1, 2]])
-
-    mlp = MultilayerPerceptron([
-        Layer(neuron_units=5, input_size=X.shape[1]+1),
-        Layer(neuron_units=4),
-        Layer(neuron_units=Y.shape[1])
-    ])
-
-    mlp.init_weights()
-    mlp.fit(X, Y)
+    def calculate_mean_error(self, X, Y):
+        err = self.calculate_abs_error(X, Y)
+        err /= X.shape[0]
+        return err
