@@ -3,7 +3,7 @@ import yaml
 import os
 import json
 import math
-from multilayer_perceptron import MultilayerPerceptron, Layer
+from multilayer_perceptron_2 import MultilayerPerceptron, Layer
 
 # Ej1
 
