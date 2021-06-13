@@ -227,7 +227,8 @@ class MultilayerPerceptron:
                 if err < min_err:
                     min_err = err
 
-        print('')
+        progress_bar(epochs, epochs)
+        print('\n\n', end='')
 
         # print(self._forward(X[0]))
         print(f'Error: {min_err:.2f}')
