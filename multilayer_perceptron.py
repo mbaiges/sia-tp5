@@ -1,5 +1,8 @@
 import numpy as np
 import math
+import random
+
+from utils_v2 import progress_bar
 
 # class Neuron:
 
@@ -82,44 +85,68 @@ class Layer:
         return A
     
     def backpropagate(self, diff, prev_activation, learning_rate):
+        # print("backpropagate ----------------------------------")
+
+        # print("diff:---------------------------------------")
+        # print(diff.shape)
+        # print(diff)
+
+        # print("self.df(self.H):---------------------------------------")
+        # print(self.df(self.H).shape)
+        # print(self.df(self.H))
+
         delta = np.multiply(diff, self.df(self.H)) # mult punto a punto
         self.delta = delta
 
-        diff = np.array([diff])
+        delta = np.array([delta])
         prev_activation = np.array([prev_activation])
 
-        # print("Diff:---------------------------------------")
-        # print(diff)
-        # print("Prev Act:---------------------------------------")
+        # print("delta:---------------------------------------")
+        # print(delta.shape)
+        # print(delta)
+
+        # print("prev_activation:---------------------------------------")
+        # print(prev_activation.shape)
         # print(prev_activation)
         
-        aux = diff.T @ prev_activation
+        aux = delta.T @ prev_activation
+
+        # print("aux:---------------------------------------")
+        # print(aux.shape)
+        # print(aux)
         
         delta_weights = learning_rate * aux.T
-        self.W = self.W + delta_weights
 
-        # print("Delta Weights---------------------------------:")
+        # print("delta_weights:---------------------------------------")
         # print(delta_weights.shape)
+        # print(delta_weights)
 
-        # print("DIFF------------------------------------------:")
-        # print(diff)
-        # print("self.B------------------------------------------:")
-        # print(self.B)
+        # print("self.W:---------------------------------------")
+        # print(self.W.shape)
+        # print(self.W)
+
+        self.W = self.W + delta_weights
         
         # aux2 = diff.T @ np.identity(prev_activation.shape)
 
-        delta_biases = learning_rate * diff[0]
+        delta_biases = learning_rate * delta[0]
         self.B = self.B + delta_biases
 
-        # print(self.W)
-        # print(delta.T)
         new_diff = self.W @ delta.T
         # print(new_diff)
         # if math.isnan(new_diff):
         #     print("error")
         #     exit(1)
+
+        # print("new_diff:---------------------------------------")
+        # print(new_diff.shape)
+        # print(new_diff)
+
+        # print("new_diff.T:---------------------------------------")
+        # print(new_diff.T.shape)
+        # print(new_diff.T)
     
-        return new_diff.T
+        return new_diff.T[0]
 
 class MultilayerPerceptron:
 
@@ -177,24 +204,33 @@ class MultilayerPerceptron:
 
         # X = self._transform_X(X)
         examples_n = X.shape[0]
-        err = math.inf
+        min_err = math.inf
+
+        examples_order = [i for i in range(0, examples_n)]
 
         for epoch_n in range(epochs):
-            #TODO: Shuffle
-            for i in range(examples_n):
+
+            progress_bar(epoch_n, epochs)
+
+            random.shuffle(examples_order)
+            
+            for i in examples_order:
                 X_example = X[i]
                 Y_example = Y[i]
 
                 Y_predicted = self._forward(X_example)
-                # print(Y_predicted)
                 self._backpropagate(X_example, Y_predicted, Y_example, learning_rate)
 
-                # err = self.calculate_mean_error(X, Y)
+                err = self.calculate_mean_error(X, Y)
                 # print(f'Error: {err:.2f}')
 
+                if err < min_err:
+                    min_err = err
+
+        print('')
+
         # print(self._forward(X[0]))
-        err = self.calculate_mean_error(X, Y)
-        print(f'Error: {err:.2f}')
+        print(f'Error: {min_err:.2f}')
     
     def calculate_abs_error(self, X, Y):
         examples_n = X.shape[0]

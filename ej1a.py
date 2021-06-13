@@ -39,9 +39,6 @@ def get_data():
     X = np.array(X)
     X = 2*X - 1
 
-    print(X.shape)
-    print(X)
-
     return X, X
 
 if __name__ == "__main__": 
@@ -59,15 +56,23 @@ if __name__ == "__main__":
 
     # X, Y = np.array([[1, 2, 3, 4, 5]]), np.array([[1, 2, 3, 4, 5]])
 
+    print('+++++++++++ X +++++++++++')
+    print(X)
+    print('+++++++++++ Y +++++++++++')
+    print(Y)
+    print('')
+
     mlp = MultilayerPerceptron([
         Layer(neuron_units=20, activation='tanh', input_size=X.shape[1]),
-        Layer(neuron_units=4, activation='tanh'),
+        Layer(neuron_units=10, activation='tanh'),
+        Layer(neuron_units=2, activation='tanh'),
+        Layer(neuron_units=10, activation='tanh'),
         Layer(neuron_units=20, activation='tanh'),
-        Layer(neuron_units=Y.shape[1], activation='tanh')   
+        Layer(neuron_units=Y.shape[1], activation='linear'),
     ])
 
     mlp.init_weights()
-    mlp.fit(X, Y, learning_rate=0.0001, epochs=10000)
+    mlp.fit(X, Y, learning_rate=0.001, epochs=1000)
 
-    for i in range(X.shape[0]):
-        print(f'with x={X[i]} expected={Y[i]}, but got={mlp.predict(X[i])}')
+    # for i in range(X.shape[0]):
+    #     print(f'with x={X[i]} \nexpected={Y[i]}, \nbut got={mlp.predict(X[i])}\n\n')
