@@ -42,7 +42,7 @@ class Layer:
             fn = lambda x: np.where(x < 0, 0.0, x)
             df = lambda x: np.where(x < 0, 0.0, 1.0)
         elif activation == 'sigmoid':
-            fn = lambda x: 1 / (1 + np.exp(-np.clip(x,-500,500)))
+            fn = lambda x: 1 / (1 + np.exp(-x))
             df = lambda x: x * (1 - x)
         elif activation == 'tanh':
             fn = lambda x: np.tanh(2*x)
