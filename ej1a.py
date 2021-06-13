@@ -3,7 +3,7 @@ import yaml
 import os
 import json
 import math
-from multilayer_perceptron_2 import MultilayerPerceptron, Layer
+from multilayer_perceptron import MultilayerPerceptron, Layer
 
 # Ej1
 
@@ -43,16 +43,16 @@ def get_data():
 
 if __name__ == "__main__": 
 
-    # X, Y = get_data()
+    X, Y = get_data()
 
-    X = np.array([
-        [-1, 1],
-        [1, -1],
-        [-1, -1],
-        [1, 1]
-    ])
+    # X = np.array([
+    #     [-1, 1],
+    #     [1, -1],
+    #     [-1, -1],
+    #     [1, 1]
+    # ])
 
-    Y = np.array([[-1], [-1], [-1], [1]])
+    # Y = np.array([[-1], [-1], [-1], [1]])
 
     # X, Y = np.array([[1, 2, 3, 4, 5]]), np.array([[1, 2, 3, 4, 5]])
 
@@ -64,11 +64,17 @@ if __name__ == "__main__":
 
     mlp = MultilayerPerceptron([
         Layer(neuron_units=20, activation='tanh', input_size=X.shape[1]),
-        Layer(neuron_units=Y.shape[1], activation='linear'),
+        Layer(neuron_units=15, activation='tanh'),
+        Layer(neuron_units=10, activation='tanh'),
+        Layer(neuron_units=2, activation='tanh'),
+        Layer(neuron_units=10, activation='tanh'),
+        Layer(neuron_units=15, activation='tanh'),
+        Layer(neuron_units=20, activation='tanh'),
+        Layer(neuron_units=Y.shape[1], activation='tanh')
     ])
 
     mlp.init_weights()
-    mlp.fit(X, Y, learning_rate=0.001, epochs=1000)
+    mlp.fit(X, Y, learning_rate=0.0001, epochs=4000)
 
     for i in range(X.shape[0]):
         print(f'with x={X[i]} \nexpected={Y[i]}, \nbut got={mlp.predict(X[i])}\n\n')
