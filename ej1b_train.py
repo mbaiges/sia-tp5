@@ -42,7 +42,7 @@ if __name__ == "__main__":
     learning_rate=0.0001
     epochs=25000
     noise_coverage = 1
-    noise_pct = 0.5
+    noise_pct = 0.75
     font='font1'
 
     X, Y = get_data(font, fonts_training)
@@ -52,10 +52,6 @@ if __name__ == "__main__":
     mlp = MultilayerPerceptron([
         Layer(neuron_units=20, activation='tanh', input_size=X.shape[1]),
         Layer(neuron_units=15, activation='tanh'),
-        Layer(neuron_units=10, activation='tanh'),
-        Layer(neuron_units=2, activation='tanh'),
-        Layer(neuron_units=10, activation='tanh'),
-        Layer(neuron_units=15, activation='tanh'),
         Layer(neuron_units=20, activation='tanh'),
         Layer(neuron_units=Y.shape[1], activation='tanh')
     ])
@@ -63,4 +59,4 @@ if __name__ == "__main__":
     mlp.init_weights()
     mlp.fit(X_noise, Y, learning_rate=learning_rate, epochs=epochs)
     # save_mlp(mlp, name=f"ej1b_{epochs}_{noise_coverage*100}_{noise_pct*100}_big", dir=os.path.join(saves_folder, 'ej1b'))
-    save_mlp(mlp, name=f"ej1b_id1", dir=os.path.join(saves_folder, 'ej1b'))
+    save_mlp(mlp, name=f"ej1b_id8", dir=os.path.join(saves_folder, 'ej1b'))
