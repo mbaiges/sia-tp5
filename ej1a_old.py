@@ -172,6 +172,8 @@ if __name__ == "__main__":
     mlp.init_weights()
     mlp.fit(X, Y, learning_rate=learning_rate, epochs=epochs)
 
+    
+
     show_characters_comparison(X,Y,mlp)
     # show_noise_character_comparison(X_noise, Y, mlp)
 
