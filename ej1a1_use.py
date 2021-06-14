@@ -1,11 +1,9 @@
-import numpy as np
 import yaml
 import os
-import json
-import math
 from matplotlib import pyplot as plt
-import random
-from multilayer_perceptron import MultilayerPerceptron, Layer, save_mlp, load_mlp
+
+from utils_v2 import get_data
+from multilayer_perceptron import load_mlp
 
 # Ej1a
 
@@ -22,30 +20,6 @@ with open(config_filename) as file:
     data_folder = config['data_folder']
     fonts_training = os.path.join(data_folder, config['fonts_training'])
     saves_folder = config['saves_folder']
-
-def get_data():
-    
-    f = open(fonts_training)
-    data = json.loads(f.read())
-
-    data1 = data['font1']
-
-    def plain_data(matrix):
-        arr = []
-        for row in matrix:
-            for el in row:
-                arr.append(el)
-        return arr
-
-    X = []
-
-    for el in data1:
-        X.append(plain_data(el))
-
-    X = np.array(X)
-    X = 2*X - 1
-
-    return X, X
 
 def show_characters_comparison(X,Y,mlp):
     images = []
@@ -72,8 +46,10 @@ def show_characters_comparison(X,Y,mlp):
 
 if __name__ == "__main__": 
     learning_rate=0.0001
-    epochs=15000
+    epochs=500
+    font='font1'
 
-    X, Y = get_data()
-    mlp = load_mlp(name=f"ej1a_{epochs}", dir=saves_folder)
+    X, Y = get_data(font, fonts_training)
+
+    mlp = load_mlp(name=f"ej1a_{font}_{epochs}", dir=saves_folder)
     show_characters_comparison(X,Y,mlp)

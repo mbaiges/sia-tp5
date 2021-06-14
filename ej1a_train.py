@@ -1,11 +1,9 @@
 import numpy as np
 import yaml
 import os
-import json
-import math
-from matplotlib import pyplot as plt
-import random
-from multilayer_perceptron import MultilayerPerceptron, Layer, save_mlp, load_mlp
+
+from utils_v2 import get_data
+from multilayer_perceptron import MultilayerPerceptron, Layer, save_mlp
 
 # Ej1a
 
@@ -23,36 +21,13 @@ with open(config_filename) as file:
     fonts_training = os.path.join(data_folder, config['fonts_training'])
     saves_folder = config['saves_folder']
 
-def get_data():
-    
-    f = open(fonts_training)
-    data = json.loads(f.read())
-
-    data1 = data['font1']
-
-    def plain_data(matrix):
-        arr = []
-        for row in matrix:
-            for el in row:
-                arr.append(el)
-        return arr
-
-    X = []
-
-    for el in data1:
-        X.append(plain_data(el))
-
-    X = np.array(X)
-    X = 2*X - 1
-
-    return X, X
-
 if __name__ == "__main__": 
-
-    X, Y = get_data()
     
     learning_rate=0.0001
-    epochs=50000
+    epochs=500
+    font='font1'
+
+    X, Y = get_data(font, fonts_training)
 
     mlp = MultilayerPerceptron([
         Layer(neuron_units=20, activation='tanh', input_size=X.shape[1]),
