@@ -21,26 +21,6 @@ with open(config_filename) as file:
     fonts_training = os.path.join(data_folder, config['fonts_training'])
     saves_folder = config['saves_folder']
 
-def show_latent_scatter(encoder, X):
-    fig, ax = plt.subplots()
-
-    labels = ["_", "!", "\"", "#", "$", "%", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?"]
-    x = [] # Puntos del espacio latente
-    y = []
-    for i in range(0, X.shape[0]):
-        point = encoder.predict(X[i])
-        print(f"point = {point}")
-        x.append(point[0])
-        y.append(point[1])
-        print(f"p:({x[i]},{y[i]})")
-
-    ax.scatter(x,y)
-
-    for i in range(X.shape[0]):
-        ax.annotate(labels[i], (x[i], y[i]))
-
-    plt.show() 
-
 if __name__ == "__main__":
     learning_rate=0.0001
     epochs=200000
@@ -50,5 +30,9 @@ if __name__ == "__main__":
 
     # mlp = load_mlp(name="ej1a_{font}_{epochs}", dir=os.path.join(saves_folder, 'ej1a'))
     mlp = load_mlp(name=f"ej1a_id7", dir=os.path.join(saves_folder, 'ej1a'))
-    encoder = MultilayerPerceptron(mlp.layers[:4])
-    show_latent_scatter(encoder, X)
+    decoder = MultilayerPerceptron(mlp.layers[4:])
+    num1 = 0
+    num2 = 1
+    character = decoder.predict([num1, num2]).reshape((7,5))
+    plt.imshow(character)
+    plt.show()

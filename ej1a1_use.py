@@ -43,13 +43,13 @@ def show_characters_comparison(X,Y,mlp):
     plt.show()
 
 
-
 if __name__ == "__main__": 
-    learning_rate=0.0001
-    epochs=500
+    learning_rate=0.001
+    epochs=25000
     font='font1'
 
     X, Y = get_data(font, fonts_training)
 
-    mlp = load_mlp(name=f"ej1a_{font}_{epochs}", dir=os.path.join(saves_folder, 'ej1a'))
+    mlp = load_mlp(name=f"ej1a_id22", dir=os.path.join(saves_folder, 'ej1a'))
     show_characters_comparison(X,Y,mlp)
+    
