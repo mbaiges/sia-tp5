@@ -91,11 +91,11 @@ def show_noise_character_comparison(X_noise, Y, mlp):
 
 if __name__ == "__main__": 
     learning_rate=0.0001
-    epochs=50000
+    epochs=25000
     noise_coverage = 1
     noise_pct = 0.5
 
     X, Y = get_data()
     X_noise = noisify(X, noise_coverage, noise_pct)
-    mlp = load_mlp(name=f"ej1b_{epochs}_{noise_coverage*100}_{noise_pct*100}_xsmol", dir=saves_folder)
+    mlp = load_mlp(name=f"ej1b_{epochs}_{noise_coverage*100}_{noise_pct*100}_big", dir=saves_folder)
     show_noise_character_comparison(X_noise,Y,mlp)
