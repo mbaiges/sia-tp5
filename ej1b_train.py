@@ -86,4 +86,5 @@ if __name__ == "__main__":
 
     mlp.init_weights()
     mlp.fit(X_noise, Y, learning_rate=learning_rate, epochs=epochs)
-    save_mlp(mlp, name=f"ej1b_{epochs}_{noise_coverage*100}_{noise_pct*100}_big", dir=os.path.join(saves_folder, 'ej1b'))
+    # save_mlp(mlp, name=f"ej1b_{epochs}_{noise_coverage*100}_{noise_pct*100}_big", dir=os.path.join(saves_folder, 'ej1b'))
+    save_mlp(mlp, name=f"ej1b_id1", dir=os.path.join(saves_folder, 'ej1b'))
