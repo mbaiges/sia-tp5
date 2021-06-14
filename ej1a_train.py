@@ -67,4 +67,4 @@ if __name__ == "__main__":
 
     mlp.init_weights()
     mlp.fit(X, Y, learning_rate=learning_rate, epochs=epochs)
-    save_mlp(mlp, name="ej1a_50000", dir=saves_folder)
+    save_mlp(mlp, name=f"ej1a_{epochs}_big", dir=saves_folder)

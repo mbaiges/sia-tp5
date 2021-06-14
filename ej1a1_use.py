@@ -49,8 +49,6 @@ def get_data():
 
 def show_characters_comparison(X,Y,mlp):
     images = []
-    learning_rate=0.0001
-    epochs=1000
 
     for i in range(0, Y.shape[0]):
         images.append(X[i].reshape((7,5)))
@@ -73,6 +71,9 @@ def show_characters_comparison(X,Y,mlp):
 
 
 if __name__ == "__main__": 
+    learning_rate=0.0001
+    epochs=15000
+
     X, Y = get_data()
-    mlp = load_mlp(name="ej1a_1000", dir=saves_folder)
+    mlp = load_mlp(name=f"ej1a_{epochs}", dir=saves_folder)
     show_characters_comparison(X,Y,mlp)
