@@ -42,4 +42,4 @@ if __name__ == "__main__":
 
     mlp.init_weights()
     mlp.fit(X, Y, learning_rate=learning_rate, epochs=epochs)
-    save_mlp(mlp, name=f"ej1a_{font}_{epochs}", dir=saves_folder)
+    save_mlp(mlp, name=f"ej1a_{font}_{epochs}", dir=os.path.join(saves_folder, 'ej1a'))

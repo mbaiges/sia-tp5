@@ -51,5 +51,5 @@ if __name__ == "__main__":
 
     X, Y = get_data(font, fonts_training)
 
-    mlp = load_mlp(name=f"ej1a_{font}_{epochs}", dir=saves_folder)
+    mlp = load_mlp(name=f"ej1a_{font}_{epochs}", dir=os.path.join(saves_folder, 'ej1a'))
     show_characters_comparison(X,Y,mlp)

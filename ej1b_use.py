@@ -2,9 +2,10 @@ import numpy as np
 import yaml
 import os
 import json
-import math
 from matplotlib import pyplot as plt
 import random
+
+from utils_v2 import get_data
 from multilayer_perceptron import MultilayerPerceptron, Layer, save_mlp, load_mlp
 
 # Ej1a
@@ -22,30 +23,6 @@ with open(config_filename) as file:
     data_folder = config['data_folder']
     fonts_training = os.path.join(data_folder, config['fonts_training'])
     saves_folder = config['saves_folder']
-
-def get_data():
-    
-    f = open(fonts_training)
-    data = json.loads(f.read())
-
-    data1 = data['font1']
-
-    def plain_data(matrix):
-        arr = []
-        for row in matrix:
-            for el in row:
-                arr.append(el)
-        return arr
-
-    X = []
-
-    for el in data1:
-        X.append(plain_data(el))
-
-    X = np.array(X)
-    X = 2*X - 1
-
-    return X, X
 
 def noisify(X, noise_coverage, noise_pct):
     new_X = []
@@ -94,8 +71,10 @@ if __name__ == "__main__":
     epochs=25000
     noise_coverage = 1
     noise_pct = 0.5
+    font='font1'
 
-    X, Y = get_data()
+    X, Y = get_data(font, fonts_training)
+
     X_noise = noisify(X, noise_coverage, noise_pct)
-    mlp = load_mlp(name=f"ej1b_{epochs}_{noise_coverage*100}_{noise_pct*100}_big", dir=saves_folder)
+    mlp = load_mlp(name=f"ej1b_{epochs}_{noise_coverage*100}_{noise_pct*100}_xsmol", dir=os.path.join(saves_folder, 'ej1b'))
     show_noise_character_comparison(X_noise,Y,mlp)
