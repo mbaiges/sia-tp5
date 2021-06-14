@@ -23,30 +23,6 @@ with open(config_filename) as file:
     fonts_training = os.path.join(data_folder, config['fonts_training'])
     saves_folder = config['saves_folder']
 
-def get_data():
-    
-    f = open(fonts_training)
-    data = json.loads(f.read())
-
-    data1 = data['font1']
-
-    def plain_data(matrix):
-        arr = []
-        for row in matrix:
-            for el in row:
-                arr.append(el)
-        return arr
-
-    X = []
-
-    for el in data1:
-        X.append(plain_data(el))
-
-    X = np.array(X)
-    X = 2*X - 1
-
-    return X, X
-
 def noisify(X, noise_coverage, noise_pct):
     new_X = []
     for i in range(0, X.shape[0]):
