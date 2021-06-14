@@ -3,7 +3,6 @@ import math
 import random
 
 from utils_v2 import progress_bar
-
 class Neuron:
 
     def __init__(self, fn, df):

@@ -1,8 +1,19 @@
 import numpy as np
 import math
 import random
+import yaml
+import json
+import os
 
 from utils_v2 import progress_bar
+
+show_progress_bar = False
+
+config_filename = 'config.yaml'
+
+with open(config_filename) as file:
+    config = yaml.load(file, Loader=yaml.FullLoader)
+    show_progress_bar = config['progress_bar']
 
 # class Neuron:
 
@@ -34,6 +45,7 @@ class Layer:
 
     def __init__(self, neuron_units=0, activation='linear', input_size=None):
         self.neuron_units = neuron_units
+        self.activation = activation
         self.fn, self.df = self._select_activation_fn(activation)
         self.input_size = input_size
 
@@ -54,6 +66,10 @@ class Layer:
             NotImplementedError(f"Function {activation} cannot be used.")
         return fn, df
 
+    def set_weights(self, W, B):
+        self.W = W
+        self.B = B
+
     def init_weights(self, weights_n=0):
         # self.W = np.random.rand(weights_n, self.neuron_units) # weights_n
         # self.B = np.random.rand(self.neuron_units) # biases
@@ -65,7 +81,7 @@ class Layer:
         #     self.neurons.append(n)
 
         # xavier
-
+        self.weights_n = weights_n
         self.W = np.random.normal(loc=0.0, size=(weights_n, self.neuron_units), scale=np.sqrt(2/(weights_n + self.neuron_units)))
         self.B = np.random.normal(loc=0.0, size=self.neuron_units, scale=np.sqrt(2/(weights_n + self.neuron_units)))
 
@@ -150,7 +166,7 @@ class Layer:
 
 class MultilayerPerceptron:
 
-    def __init__(self, layers): #[5, 3, 5]
+    def __init__(self, layers=[]): #[5, 3, 5]
         self.layers = layers
 
     def init_weights(self):
@@ -197,6 +213,9 @@ class MultilayerPerceptron:
     #     new_X = np.append(to_append, new_X, axis=0)
     #     return new_X.T
 
+    def _get_layers_cfg(self):
+        return [{'neuron_units': layer.neuron_units, 'activation': layer.activation, 'W': layer.W.copy(), 'B': layer.B.copy()} for layer in self.layers]
+
     def predict(self, X):
         return self._forward(X)
 
@@ -204,13 +223,14 @@ class MultilayerPerceptron:
 
         # X = self._transform_X(X)
         examples_n = X.shape[0]
-        min_err = math.inf
+        self.min_err = math.inf
 
         examples_order = [i for i in range(0, examples_n)]
 
         for epoch_n in range(epochs):
 
-            progress_bar(epoch_n, epochs)
+            if show_progress_bar:
+                progress_bar(epoch_n, epochs)
 
             random.shuffle(examples_order)
             
@@ -224,14 +244,31 @@ class MultilayerPerceptron:
                 err = self.calculate_mean_error(X, Y)
                 # print(f'Error: {err:.2f}')
 
-                if err < min_err:
-                    min_err = err
+                if err < self.min_err:
+                    self.min_err = err
+                    self.best_layers_cfg = self._get_layers_cfg()
 
-        progress_bar(epochs, epochs)
-        print('\n\n', end='')
+        if show_progress_bar:
+            progress_bar(epochs, epochs)
+            print('\n\n', end='')
 
         # print(self._forward(X[0]))
-        print(f'Error: {min_err:.2f}')
+        print(f'Error: {self.min_err:.2f}')
+
+    def load_layers_cfg(self, layers_cfg):
+        layers = []
+        for cfg in layers_cfg:
+            l = Layer(cfg['neuron_units'], cfg['activation'])
+            l.set_weights(cfg['W'], cfg['B'])
+            layers.append(l)
+        self.layers = layers
+
+    @property
+    def best_model(self):
+        return {
+            'layers': self._get_layers_cfg(),
+            'mae': self.min_err
+        }
     
     def calculate_abs_error(self, X, Y):
         examples_n = X.shape[0]
@@ -245,3 +282,66 @@ class MultilayerPerceptron:
         err = self.calculate_abs_error(X, Y)
         err /= X.shape[0]
         return err
+
+def save_mlp(mlp, name='', dir=''):
+    model = mlp.best_model
+
+    data = {
+        'name': name,
+        'layers': model['layers'],
+        'mae': model['mae']
+    }
+
+    # np.array to list
+    for l in data['layers']:
+        l['W'] = l['W'].tolist()
+        l['B'] = l['B'].tolist()
+
+    if dir != '' and (not os.path.exists(dir) or not os.path.isdir(dir)):
+        os.mkdir(dir)
+
+    if os.path.exists(os.path.join(dir, name) + '.json'):
+        base_name = name
+        idx = 2
+        exists = True
+        while exists:
+            exists = False
+            name = f'{base_name}_{idx}'
+            if os.path.exists(os.path.join(dir, name) + '.json'):
+                exists = True
+            idx += 1
+
+    name += '.json'
+
+    full_path = os.path.join(dir, name)
+
+    with open(full_path, 'w') as outfile:
+        json.dump(data, outfile)
+
+    s = f'SAVE: Multilayer Perceptron named "{name}" saved'
+    if dir != '.':
+        s += f' in directory "{dir}"'
+    print(f'\n{s}\n')
+
+def load_mlp(name='', dir=''):
+    name += '.json'
+
+    full_path = os.path.join(dir, name)
+    if not os.path.exists(full_path):
+        print(f'ERROR: Load failed. File "{name}" does not exist')
+        exit(1)
+
+    with open(full_path) as json_file:
+        data = json.load(json_file)
+
+        # list to np.array
+        for l in data['layers']:
+            l['W'] = np.array(l['W'])
+            l['B'] = np.array(l['B'])
+
+        mlp = MultilayerPerceptron()
+        mlp.load_layers_cfg(data['layers'])
+
+        s = f'LOAD: Loaded Multilayer Perceptron named {name} (mae={data["mae"]:.2f})'
+        print(f'\n{s}\n')
+        return mlp

@@ -1,6 +1,9 @@
 # data folder
 data_folder: data
 
+# saves
+saves_folder: saves
+
 # data files
 
 # fonts
@@ -9,3 +12,6 @@ fonts_training: fonts_training.json
 
 # plotting
 plotting: True
+
+# multilayer config
+progress_bar: True

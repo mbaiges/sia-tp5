@@ -3,14 +3,17 @@ import yaml
 import os
 import json
 import math
-from multilayer_perceptron import MultilayerPerceptron, Layer
 from matplotlib import pyplot as plt
 import random
+from multilayer_perceptron import MultilayerPerceptron, Layer, save_mlp, load_mlp
 
 # Ej1
 
 ## data filenames
 fonts_training = ''
+
+## saves folder
+saves_folder = ''
 
 config_filename = 'config.yaml'
 
@@ -18,6 +21,7 @@ with open(config_filename) as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
     data_folder = config['data_folder']
     fonts_training = os.path.join(data_folder, config['fonts_training'])
+    saves_folder = config['saves_folder']
 
 def get_data():
     
