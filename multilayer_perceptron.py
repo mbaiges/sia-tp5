@@ -1,3 +1,4 @@
+from typing import final
 import numpy as np
 import math
 import random
@@ -10,6 +11,7 @@ from utils_v2 import progress_bar
 show_progress_bar = False
 momentum = False
 momentum_mult = 0.8
+adaptative_lr = False
 
 config_filename = 'config.yaml'
 
@@ -18,6 +20,7 @@ with open(config_filename) as file:
     show_progress_bar = config['progress_bar']
     momentum = config['momentum']
     momentum_mult = config['momentum_mult']
+    adaptative_lr = config['adaptative_lr']
 
 class Layer:
 
@@ -146,6 +149,12 @@ class MultilayerPerceptron:
         return self._forward(X)
 
     def fit(self, X, Y, learning_rate=0.001, epochs=100):
+        lr0 = learning_rate
+        lr = learning_rate
+        limit = 2
+        if adaptative_lr:
+            final_lr = learning_rate/10
+            d =  (-(epochs/limit)/math.log(final_lr/lr0))
 
         # X = self._transform_X(X)
         examples_n = X.shape[0]
@@ -153,8 +162,12 @@ class MultilayerPerceptron:
 
         examples_order = [i for i in range(0, examples_n)]
 
+
         for epoch_n in range(epochs):
 
+            if adaptative_lr and epoch_n < epochs/limit:
+                lr = lr0 * math.exp((-1/d)*epoch_n)
+            
             if show_progress_bar:
                 progress_bar(epoch_n, epochs)
 
@@ -165,7 +178,7 @@ class MultilayerPerceptron:
                 Y_example = Y[i]
 
                 Y_predicted = self._forward(X_example)
-                self._backpropagate(X_example, Y_predicted, Y_example, learning_rate)
+                self._backpropagate(X_example, Y_predicted, Y_example, lr)
 
                 err = self.calculate_mean_error(X, Y)
                 # print(f'Error: {err:.2f}')

@@ -14,8 +14,13 @@ fonts_training: fonts_training.json
 plotting: True
 
 # multilayer config
-momentum: False
-momentum_mult: 0.8
+momentum: True
+momentum_mult: 0.7
+
+# multilayer config
+adaptative_lr: False
+
+# progress bar
 progress_bar: True
 
 # vae config
