@@ -63,44 +63,58 @@ images_shape:
 
 ```
 
+En el archivo de configuración se debe especificar:
+ * `data_folder` : la carpeta donde estan los datos guardados que seran utilizados para entrenar a la red
+ * `saves_folder` : la carpeta donde volcar los pesos de la red entrenada
+ * `fonts_h` : nombre del archivo .h de fuentes en binario provisto por la catedra
+ * `fonts_training` : un archivo con los fonts_h pasados de hexadecimal  a entero en formato JSON
+ * `plotting`: un valor booleano para indicar si se quiere graficar
+ * `momentum y momentum_mult` : un valor booleano para indicar si se quiere utilizar momentum. Y el porcentaje que se quiere utilizar
+ * `adaptative_lr` :  un valor booleano para indicar si se quiere utilizar un learning rate adaptativo
+ * `images_folder y images_shape`: La carpeta donde se deben encontrar las imagenes para el VAE y el tamaño al que se las desea comprimir
+ 
+
 ### Ejecución
 
 Finalmente, para correr los distintos puntos del trabajo se debe ejecutar uno de los siguientes comandos para ejecutar el ejercicio deseado:
 
 ```python
 
-python .\exercise.py
+python .\ej1a_train.py
 
-python .\ej1a.py
+python .\ej1a1_use.py
 
-python .\ej1a_usual_matches.py:
+python .\ej1a3_use.py
 
-python .\ej1b.py
+python .\ej1a4_use.py
 
-python .\ej2.py
+python .\ej1b_train.py
 
-python .\ej2_rt.py
+python .\ej1b_use.py
+
+python .\ej2_images.py
+
+python .\ej1a_greedy_layer_train.py
+
+python .\ej1a_greedy_layer_use.py
+
+python .\ej1a_greedy_layer.py
 
 ```
 
-* `exercise.py`:
-    Genera nuevas componentes como combinación lineal de las originales, y muestra a los paises en un mapa ubicados en función de la 1ra y la 2da componente nueva
+*Aclaración: Las secuencias de comandos no ejecutarán el entrenado por el código anterior `_train`, para esto hay que modificar en los `_use` el nombre del archivo a utilizar por el nombre del generado.*
 
-* `ej1a.py`:
-    Crea una red de Kohonen y realiza el ordenamiento de los items del conjunto de entrada en una matriz de neuronas. Muestra los graficos de:         
-    * La cantidad de items que cayeron en cada neurona durante todo el proceso
-    * Una matriz U del promedio de la distancia entre el vector de pesos del nodo y sus nodos vecinos
-    * Una matriz con la cantidad de items que cayeron en cada neurona en la ultima epoca
+* `ej1a_train.py, ej1b_train.py`:
+    Corresponden a las partes "a" y "b" del punto 1 del trabajo y se deben correr para entrenar a la red de la forma deseada. El archivo con la información del entrenamiento se guarda en la carpeta especificada en `saves` del archivo de configuracion yaml. La red que se desee crear debe ser modificada en la funcion main de cualquiera de estos 2 archivos
 
+* `ej1a_greedy_layer_train.py`:
+    Similar a ej1a_train pero utiliza una red que entrena por niveles de afuera hacia adentro en redes neuronales separadas. Permite almacenar distintas capas en archivos separados, y entrenar las siguientes capas eligiendo que capas pre-entrenadas queremos.
 
-* `ej1a_usual_matches.py`:
-    Genera una red de Kohonen y realiza el ordenamiento de los items del conjunto de entrada multiples veces. En cada iteración observamos que items quedaron agrupados en la misma neurona y lo almacenamos. Al final de todas las iteraciones, mostramos un grafico que muestra cuantas veces compartieron la posicion entre pares de items de mi conjunto de entrada
+* `ej1a1_use.py, ej1a3_use.py, ej1a4_use.py, ej1b_use.py, ej2_images.py`:
+    Utiliza las redes correspondientes creadas con los archivos `_train` y realiza la tarea correspondiente a cada ejercicio.
 
-* `ej1b.py`:
-    Realiza la busqueda de la 1ra componente utilizando un perceptrón lineal simple con la regla de Oja
+* `ej1a_greedy_layer_use.py`:
+    Permite utilizar redes correspondientes a distintas capas provenientes de distintos archivos y evaluar el error del autoencoder generado utilizando todas estas capas.
 
-* `ej2.py`:
-    Utilizando una red de Hopfield, almacena 4 patrones de letras ortogonales entre sí y para cada una de ellas, realiza una prueba agregando ruido al patrón original desde un 0% hasta un 100% con un paso del 5% durante 1000 iteraciones para cada una. Finalmente muestra un grafico para cada letra donde se ve la cantidad de aciertos, la cantidad de estados espureos y la cantidad de aciertos erróneos.
-
-* `ej2_rt.py`:
-    Utiliza una red de Hopfield, y muesta, a tiempo real, el desarrollo del algoritmo para un caracter con ruido
+* `ej1a_greedy_layer.py`:
+    Permite definir una estructura de capas (todas propagando el error con la función de tangente hiperbólica), entrenar cada par de capas individualmente, y luego generar el perceptrón multicapa y almacenarlo para luego evaluarlo utilizando por ejemplo el archivo `ej1a1_use.py`.
