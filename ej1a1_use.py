@@ -45,11 +45,11 @@ def show_characters_comparison(X,Y,mlp):
 
 if __name__ == "__main__": 
     learning_rate=0.0001
-    epochs=5000
+    epochs=10000
     font='font1'
 
     X, Y = get_data(font, fonts_training)
 
-    mlp = load_mlp(name=f"test_adaptative_lr_2", dir=os.path.join(saves_folder, 'Test'))
+    mlp = load_mlp(name=f"ej1a_no_mom", dir=os.path.join(saves_folder, 'ej1a'))
     show_characters_comparison(X,Y,mlp)
     

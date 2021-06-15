@@ -206,7 +206,7 @@ class MultilayerPerceptron:
     def best_model(self):
         return {
             'layers': self._get_layers_cfg(),
-            'mae': self.min_err
+            'mae': self.min_err if not self.min_err is None else math.inf
         }
     
     def calculate_abs_error(self, X, Y):

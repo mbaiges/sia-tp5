@@ -1,4 +1,3 @@
-import numpy as np
 import yaml
 import os
 
@@ -23,7 +22,7 @@ with open(config_filename) as file:
 
 if __name__ == "__main__": 
     
-    epochs=5000
+    epochs=10000
     learning_rate=0.0001
     font='font1'
 
@@ -31,11 +30,9 @@ if __name__ == "__main__":
 
     mlp = MultilayerPerceptron([
         Layer(neuron_units=20, activation='tanh', input_size=X.shape[1]),
-        Layer(neuron_units=15, activation='tanh'),
         Layer(neuron_units=10, activation='tanh'),
         Layer(neuron_units=2, activation='tanh'),
         Layer(neuron_units=10, activation='tanh'),
-        Layer(neuron_units=15, activation='tanh'),
         Layer(neuron_units=20, activation='tanh'),
         Layer(neuron_units=Y.shape[1], activation='tanh')
     ])
@@ -43,4 +40,4 @@ if __name__ == "__main__":
     mlp.init_weights()
     mlp.fit(X, Y, learning_rate=learning_rate, epochs=epochs)
     # save_mlp(mlp, name=f"ej1a_{font}_{epochs}", dir=os.path.join(saves_folder, 'ej1a'))
-    save_mlp(mlp, name=f"test_momentum", dir=os.path.join(saves_folder, 'Test'))
+    save_mlp(mlp, name=f"ej1a_no_mom", dir=os.path.join(saves_folder, 'ej1a'))
