@@ -14,10 +14,12 @@ fonts_training: fonts_training.json
 plotting: True
 
 # multilayer config
+momentum: False
+momentum_mult: 0.8
 progress_bar: True
 
 # vae config
-images_folder: minecraft-faces
+images_folder: developer-faces
 images_shape:
   width: 16
   height: 16

@@ -8,38 +8,16 @@ import os
 from utils_v2 import progress_bar
 
 show_progress_bar = False
+momentum = False
+momentum_mult = 0.8
 
 config_filename = 'config.yaml'
 
 with open(config_filename) as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
     show_progress_bar = config['progress_bar']
-
-# class Neuron:
-
-#     def __init__(self, fn, df):
-#         self.fn = fn
-#         self.df = df
-
-#         self.W = None
-#         self.last_delta = None
-#         self.last_h = None
-#         self.last_a = None
-
-#     def init_random_weights(self, neuron_units):
-#         self.W = np.random.rand(neuron_units)
-
-#     def eval(self, X): # h = Excitación |  a = Activación
-#         h = np.inner(self.W, X) 
-#         self.last_h = h
-#         a = self.fn(h)
-#         self.last_a = a
-#         return a
-
-#     def apply_correction(self, entry, diff, learning_rate):
-#         delta = diff * self.df(self.last_excitation)
-#         self.last_delta = delta
-#         self.W = self.W + learning_rate * delta * entry
+    momentum = config['momentum']
+    momentum_mult = config['momentum_mult']
 
 class Layer:
 
@@ -48,6 +26,8 @@ class Layer:
         self.activation = activation
         self.fn, self.df = self._select_activation_fn(activation)
         self.input_size = input_size
+        self.delta_weights = None
+        self.delta_biases = None
 
     def _select_activation_fn(self, activation):
         if activation == 'relu':
@@ -71,15 +51,6 @@ class Layer:
         self.B = B
 
     def init_weights(self, weights_n=0):
-        # self.W = np.random.rand(weights_n, self.neuron_units) # weights_n
-        # self.B = np.random.rand(self.neuron_units) # biases
-        
-        # self.neurons = []
-        # for i in range(len(neuron_units)):
-        #     n = Neuron(fn, df)
-        #     n.init_random_weights(neuron_units)
-        #     self.neurons.append(n)
-
         # xavier
         self.weights_n = weights_n
         self.W = np.random.normal(loc=0.0, size=(weights_n, self.neuron_units), scale=np.sqrt(2/(weights_n + self.neuron_units)))
@@ -101,67 +72,30 @@ class Layer:
         return A
     
     def backpropagate(self, diff, prev_activation, learning_rate):
-        # print("backpropagate ----------------------------------")
-
-        # print("diff:---------------------------------------")
-        # print(diff.shape)
-        # print(diff)
-
-        # print("self.df(self.H):---------------------------------------")
-        # print(self.df(self.H).shape)
-        # print(self.df(self.H))
 
         delta = np.multiply(diff, self.df(self.H)) # mult punto a punto
         self.delta = delta
 
         delta = np.array([delta])
         prev_activation = np.array([prev_activation])
-
-        # print("delta:---------------------------------------")
-        # print(delta.shape)
-        # print(delta)
-
-        # print("prev_activation:---------------------------------------")
-        # print(prev_activation.shape)
-        # print(prev_activation)
         
         aux = delta.T @ prev_activation
-
-        # print("aux:---------------------------------------")
-        # print(aux.shape)
-        # print(aux)
         
         delta_weights = learning_rate * aux.T
+        delta_biases = learning_rate * delta[0]
 
-        # print("delta_weights:---------------------------------------")
-        # print(delta_weights.shape)
-        # print(delta_weights)
-
-        # print("self.W:---------------------------------------")
-        # print(self.W.shape)
-        # print(self.W)
+        if momentum and not self.delta_weights is None and not self.delta_biases is None:
+            delta_weights = delta_weights + momentum_mult * self.delta_weights
+            delta_biases = delta_biases + momentum_mult * self.delta_biases
 
         self.W = self.W + delta_weights
-        
-        # aux2 = diff.T @ np.identity(prev_activation.shape)
-
-        delta_biases = learning_rate * delta[0]
         self.B = self.B + delta_biases
 
+        self.delta_weights = delta_weights
+        self.delta_biases = delta_biases
+
         new_diff = self.W @ delta.T
-        # print(new_diff)
-        # if math.isnan(new_diff):
-        #     print("error")
-        #     exit(1)
 
-        # print("new_diff:---------------------------------------")
-        # print(new_diff.shape)
-        # print(new_diff)
-
-        # print("new_diff.T:---------------------------------------")
-        # print(new_diff.T.shape)
-        # print(new_diff.T)
-    
         return new_diff.T[0]
 
 class MultilayerPerceptron:
@@ -204,14 +138,6 @@ class MultilayerPerceptron:
         #                                           = (d1.v13 d2.v13 d3.v13)
         #                                           = (d1.v14 d2.v14 d3.v14)
 
-
-        
-                
-    # def _transform_X(self, X):
-    #     to_append = np.ones((1, X.shape[0]))
-    #     new_X = X.T
-    #     new_X = np.append(to_append, new_X, axis=0)
-    #     return new_X.T
 
     def _get_layers_cfg(self):
         return [{'neuron_units': layer.neuron_units, 'activation': layer.activation, 'W': layer.W.copy(), 'B': layer.B.copy()} for layer in self.layers]
