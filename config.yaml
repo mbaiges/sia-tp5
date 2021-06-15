@@ -15,3 +15,9 @@ plotting: True
 
 # multilayer config
 progress_bar: True
+
+# vae config
+images_folder: minecraft-faces
+images_shape:
+  width: 16
+  height: 16

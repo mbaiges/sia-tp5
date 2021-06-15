@@ -13,27 +13,44 @@ from keras.layers import Input, Dense, Lambda, Reshape
 from keras.models import Model
 from keras import backend as K
 from keras import metrics
-from keras.datasets import mnist
+
+from PIL import Image
+import os
+import yaml
 
 from tensorflow.python.framework.ops import disable_eager_execution
 disable_eager_execution()
 
-
-
-print(np.__version__)
-
 ##################################################################
 
+config_filename = 'config.yaml'
+
+images_folder = ''
+images_shape = (16, 16)
+
+with open(config_filename) as file:
+    config = yaml.load(file, Loader=yaml.FullLoader)
+    data_folder = config['data_folder']
+    images_folder = os.path.join(data_folder, config['images_folder'])
+    images_shape = config['images_shape']
+
+    width = images_shape['width'] if 'width' in images_shape else 16
+    height = images_shape['height'] if 'height' in images_shape else 16
+    images_shape = (width, height)
+
+    saves_folder = config['saves_folder']
+
 # defining the key parameters
-batch_size = 100
+colors_dim = 3 # rgb
 
 # Parameters of the input images (handwritten digits)
-original_dim = 28*28
+original_dim = images_shape[0]*images_shape[1]*colors_dim
 
 # Latent space is of dimension 2.  This means that we are reducing the dimension from 784 to 2
 latent_dim = 2
 intermediate_dim = 256
-epochs = 50
+batch_size = 50
+epochs = 10000
 epsilon_std = 1.0
 
 ##################################################################
@@ -99,10 +116,38 @@ vae.summary()
 
 ##################################################################
 
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
+if not os.path.exists(images_folder) or not os.path.isdir(images_folder):
+    print(f'ERROR: Missing images folder')
 
-x_train = x_train.astype('float32') / 255.
-x_test = x_test.astype('float32') / 255.
+images = [file for file in os.listdir(images_folder) if file.endswith(('jpeg', 'png', 'jpg'))]
+
+x = []
+
+processed = 0
+for image in images:
+    full_path = os.path.join(images_folder, image)
+
+    img = Image.open(full_path)
+
+    if len(img.split()) >= 3:
+        # img.thumbnail(images_shape)
+        img = img.convert("RGB")
+        img = img.resize(images_shape)
+        img = np.asarray(img, dtype=np.float32) / 255
+        img = img[:, :, :3]
+
+        x.append(img)
+
+        processed += 1
+
+print(f"Loaded {processed} out of {len(images)} images with shape {images_shape}")
+
+x = np.array(x)
+
+(x_train, y_train), (x_test, y_test) = (x, x), (x, x)
+
+# x_train = x_train.astype('float32') / 255.
+# x_test = x_test.astype('float32') / 255.
 x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
 x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
 
@@ -115,17 +160,20 @@ vae.fit(x_train, x_train,
 
 ##################################################################    
 
-x_test_encoded = encoder.predict(x_test, batch_size=batch_size)[0]
-plt.figure(figsize=(6, 6))
-plt.scatter(x_test_encoded[:,0], x_test_encoded[:,1], c=y_test, cmap='viridis')
-plt.colorbar()
-plt.show()
+# It is not really useful here because we do not have labels for this images, they are all different
+
+# colors = [i for i in range(x_train.shape[0])]
+# x_test_encoded = encoder.predict(x_test, batch_size=batch_size)[0]
+# plt.figure(figsize=(6, 6))
+# plt.scatter(x_test_encoded[:,0], x_test_encoded[:,1], c=colors, cmap='viridis')
+# plt.colorbar()
+# plt.show()
 
 ################################################################## 
 
 n = 15  # figure with 15x15 digits
-digit_size = 28
-figure = np.zeros((digit_size * n, digit_size * n))
+digit_size = images_shape[0]
+figure = np.zeros((images_shape[0] * n, images_shape[1] * n, colors_dim))
 # linearly spaced coordinates on the unit square were transformed through the inverse CDF (ppf) of the Gaussian
 # to produce values of the latent variables z, since the prior of the latent space is Gaussian
 grid_x = norm.ppf(np.linspace(0.05, 0.95, n))
@@ -135,9 +183,9 @@ for i, yi in enumerate(grid_x):
     for j, xi in enumerate(grid_y):
         z_sample = np.array([[xi, yi]])
         x_decoded = decoder.predict(z_sample)
-        digit = x_decoded[0].reshape(digit_size, digit_size)
-        figure[i * digit_size: (i + 1) * digit_size,
-               j * digit_size: (j + 1) * digit_size] = digit
+        digit = x_decoded[0].reshape(images_shape[0], images_shape[1], colors_dim)
+        figure[i * images_shape[0]: (i + 1) * images_shape[0],
+               j * images_shape[1]: (j + 1) * images_shape[1]] = digit
 
 plt.figure(figsize=(10, 10))
 plt.imshow(figure, cmap='Greys_r')

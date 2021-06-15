@@ -1,3 +1,5 @@
 matplotlib
 numpy
 PyYAML
+scipy
+tensorflow
